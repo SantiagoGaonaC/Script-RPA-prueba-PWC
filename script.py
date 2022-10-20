@@ -3,6 +3,7 @@ from tkinter import *
 from tkinter import filedialog
 import pandas as pd
 import matplotlib as plt
+import numpy as np
 
 raiz = Tk()
 
@@ -35,10 +36,47 @@ def limpiezaCodigoPostal(csv_file2):
     #------------------------------------------------------------------------------------
     csv_file3 = csv_file2.drop(csv_file2[csv_file2.Codigo_Postal.str.contains(r'[^\d+$]')].index) 
     # csv_file3 => se elimina todas las filas diferentes a la expresión regular y crear nuevo df # 3
-    print(csv_file3)
+    notificaGerente(csv_file3)
 
 # 3.a En una nueva columna "Notifica gerente" agregan el texto "Notificar" en caso de que el ...
 # ... valor de la columna “Total” sea mayor a 80.8
+def notificaGerente(csv_file3):
+    df = csv_file3
+    df.Total = df.Total.str.replace('$','',regex=True)
+    df['Total'] = df['Total'].astype('float64')
+    df['Notifica_Gerente']=np.where(df['Total']<80.8,'','Notificar')
+    csv_file4 = df
+    dominioCorreo(csv_file4)
+    
+# 3.b En una nueva columna "Dominio" agregan el texto que se encuentra después del @ y ...
+# ... antes del primer . (punto) del email encontrado en la columna “Correo”
+def dominioCorreo(csv_file4):
+    df = csv_file4
+    df['Dominio'] = (df['Correo'].str.split('@').str[1]).str.rsplit('.').str[0]
+    csv_file5 = df
+    envioLocalInternacional(csv_file5)
+
+#En una nueva columna "Envío" si la columna “Pais” corresponde a Estados Unidos, se ...
+# ... indica que el envío es “Local”, de lo contrario es “Internacional”.
+def envioLocalInternacional(csv_file5):
+    df = csv_file5
+    df['Envio']=np.where(df['País']=='United States','Local','Internacional')
+    csv_file6 = df
+    codigoRecepcion(csv_file6)
+
+# En una nueva columna "Código recepción" agregan la concatenación de la columna ...
+# ...“Código postal” con la columna “Token”.
+def codigoRecepcion(csv_file6):
+    df = csv_file6
+    df['Codigo_recepcion'] = df.Codigo_Postal.str.cat(df.Token)
+    csv_file7 = df
+    envioEmail(csv_file7)
+    
+#def envioEmail(csv_file7):
+#extraer los datos en variable del dataframe =>
+# => "Nombre”, “Teléfono”, “Código recepción”, “Total” y “Día”
+# ejecución del codigo para el envio del email
+
 
 Button(raiz, text="Abrir Archivo", command=leerCSV).pack()
 
