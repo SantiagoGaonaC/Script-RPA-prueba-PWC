@@ -1,1 +1,3 @@
-D:\PWC\Prueba 2\Script
+1 arreglar lo de los correos
+2 tipografia con PEP8
+3 graficas

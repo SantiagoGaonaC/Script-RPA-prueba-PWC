@@ -1,12 +1,36 @@
-from __future__ import print_function
 from tkinter import *
 from tkinter import filedialog
 import pandas as pd
 import matplotlib as plt
 import numpy as np
 import re
+from email.message import EmailMessage
+import locale
+import envio_gerente
+import envio_encargado
+from concurrent.futures import ThreadPoolExecutor
+from decouple import config
+import time
 
 raiz = Tk()
+
+#-----  USUARIO_G QUE ENVIA CORREO A GERENTE ---------
+email_usuario_g = config('email_usuario_g')
+contraseña_usuario_g = config('contraseña_usuario_g')
+#----------------------------------------------------
+
+#---- EMAIL DEL GERENTE | QUE RECIBE DEL usuario_g ----
+email_gerente = config('email_gerente')
+#----------------------------------------------------
+
+#----- EMAIL DEL USUARIO_E QUIEN ENVIA AL ENCARGADO --------
+email_usuario_e = config('email_usuario_e')
+contraseña_usuario_e = config('contraseña_usuario_e')
+#----------------------------------------------------
+
+#----- EMAIL DEL ENCARGADO | CORREO TEMP -------------
+email_encargado = config('email_encargado')
+#-----------------------------------------------------
 
 def abrirCSV():
     #askopenfilename permite desplegar la ventada que se abre el archivo
@@ -44,13 +68,18 @@ def limpiezaCorreo(csv_file3):
     #si el correo no es valido cambiar y tiene prueba en NO cambiar la prueba a YES
     pattern = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
     df['Correo_Valido'] = df['Correo'].apply(lambda x: 'Yes' if pattern.match(x) else 'No')
+    limpiezaFormatoDia(df)
+    
+def limpiezaFormatoDia(df):
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+    df['Día'] = pd.to_datetime(df.Día)
+    df['Dia*'] = df['Día'].dt.strftime('%d/%m/%Y')
     validacionEnvio(df)
     
 def validacionEnvio(df):
     df = df
     # cuando prueba sea NO & Notifica Encargado Yes & Correo Valido YES = Notificacion Correcta
     df['Notificaciones'] = np.where((df['Prueba']=='No')&(df['Notifica encargado']=='Yes')&(df['Correo_Valido']=='Yes'),'Yes','No')
-    print(df.head(50))
     notificaGerente(df)
 
 # 3.a En una nueva columna "Notifica gerente" agregan el texto "Notificar" en caso de que el ...
@@ -85,13 +114,13 @@ def codigoRecepcion(csv_file6):
     df = csv_file6
     df['Codigo_recepcion'] = df.Codigo_Postal.str.cat(df.Token)
     df.to_csv('test.csv', header=True, index=False)
-    #envioEmail(df)
-    
-#def envioEmail(csv_file7):
-#extraer los datos en variable del dataframe =>
-# => "Nombre”, “Teléfono”, “Código recepción”, “Total” y “Día”
-# ejecución del codigo para el envio del email
+    envios_email(df)
+        
+def envios_email(df):
+    #envio_gerente.envioEmailGerente(df,email_usuario_g,contraseña_usuario_g,email_gerente)
 
+    print("Espera 5 segundos...  (Anti spam Gmail)")
+    envio_encargado.envio_email_encargado(df,email_usuario_e,contraseña_usuario_e,email_encargado)
 
 Button(raiz, text="Abrir Archivo", command=leerCSV).pack()
 
