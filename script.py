@@ -4,6 +4,7 @@ from tkinter import filedialog
 import pandas as pd
 import matplotlib as plt
 import numpy as np
+import re
 
 raiz = Tk()
 
@@ -36,7 +37,21 @@ def limpiezaCodigoPostal(csv_file2):
     #------------------------------------------------------------------------------------
     csv_file3 = csv_file2.drop(csv_file2[csv_file2.Codigo_Postal.str.contains(r'[^\d+$]')].index) 
     # csv_file3 => se elimina todas las filas diferentes a la expresión regular y crear nuevo df # 3
-    notificaGerente(csv_file3)
+    limpiezaCorreo(csv_file3)
+
+def limpiezaCorreo(csv_file3):
+    df = csv_file3
+    #si el correo no es valido cambiar y tiene prueba en NO cambiar la prueba a YES
+    pattern = re.compile(r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)")
+    df['Correo_Valido'] = df['Correo'].apply(lambda x: 'Yes' if pattern.match(x) else 'No')
+    validacionEnvio(df)
+    
+def validacionEnvio(df):
+    df = df
+    # cuando prueba sea NO & Notifica Encargado Yes & Correo Valido YES = Notificacion Correcta
+    df['Notificaciones'] = np.where((df['Prueba']=='No')&(df['Notifica encargado']=='Yes')&(df['Correo_Valido']=='Yes'),'Yes','No')
+    print(df.head(50))
+    notificaGerente(df)
 
 # 3.a En una nueva columna "Notifica gerente" agregan el texto "Notificar" en caso de que el ...
 # ... valor de la columna “Total” sea mayor a 80.8
@@ -44,7 +59,7 @@ def notificaGerente(csv_file3):
     df = csv_file3
     df.Total = df.Total.str.replace('$','',regex=True)
     df['Total'] = df['Total'].astype('float64')
-    df['Notifica_Gerente']=np.where(df['Total']<80.8,'','Notificar')
+    df['Notifica_Gerente']=np.where((df['Total']>80.8)&(df['Notificaciones']=='Yes'),'Yes','No')
     csv_file4 = df
     dominioCorreo(csv_file4)
     
@@ -69,8 +84,8 @@ def envioLocalInternacional(csv_file5):
 def codigoRecepcion(csv_file6):
     df = csv_file6
     df['Codigo_recepcion'] = df.Codigo_Postal.str.cat(df.Token)
-    csv_file7 = df
-    envioEmail(csv_file7)
+    df.to_csv('test.csv', header=True, index=False)
+    #envioEmail(df)
     
 #def envioEmail(csv_file7):
 #extraer los datos en variable del dataframe =>
