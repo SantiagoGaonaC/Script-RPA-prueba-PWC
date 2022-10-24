@@ -42,7 +42,6 @@ def test(df,email_usuario_e,contraseña_usuario_e,email_encargado,i,contador):
         #em.set_content(cuerpo)
         
     html = html_estructura(df,i)
-        
     parte_html = MIMEText(html, "html")
     em.attach(parte_html)
         
@@ -59,7 +58,7 @@ def test(df,email_usuario_e,contraseña_usuario_e,email_encargado,i,contador):
             #as_string se da el formato correcto
         smtp.sendmail(email_usuario_e, email_encargado, em.as_string())
         print("Mensaje enviado encargado")
-        print(contador)
+        
 #extraer los datos en variable del dataframe =>
 # => "Nombre”, “Teléfono”, “Código recepción”, “Total” y “Día”
 # ejecución del codigo para el envio del email

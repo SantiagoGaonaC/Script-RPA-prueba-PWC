@@ -1,18 +1,23 @@
+import multiprocessing
 from tkinter import *
 from tkinter import filedialog
+from matplotlib.backend_bases import FigureCanvasBase
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import matplotlib.pyplot as plt
 import pandas as pd
-import matplotlib as plt
+#import matplotlib as plt
 import numpy as np
 import re
-from email.message import EmailMessage
 import locale
 import envio_gerente
 import envio_encargado
-from concurrent.futures import ThreadPoolExecutor
+import gen_graficas
 from decouple import config
-import time
+import customtkinter
 
-raiz = Tk()
+
+customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
+customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 
 #-----  USUARIO_G QUE ENVIA CORREO A GERENTE ---------
 email_usuario_g = config('email_usuario_g')
@@ -71,8 +76,10 @@ def limpiezaCorreo(csv_file3):
     limpiezaFormatoDia(df)
     
 def limpiezaFormatoDia(df):
+    #establece el lenguaje ES y el tiempo local
     locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
     df['Día'] = pd.to_datetime(df.Día)
+    #config de la columna día
     df['Dia*'] = df['Día'].dt.strftime('%d/%m/%Y')
     validacionEnvio(df)
     
@@ -114,15 +121,13 @@ def codigoRecepcion(csv_file6):
     df = csv_file6
     df['Codigo_recepcion'] = df.Codigo_Postal.str.cat(df.Token)
     df.to_csv('test.csv', header=True, index=False)
+    gen_email_graficos(df)
+
+#método para iniciar la creación de las graficas y enviar los correos
+def gen_email_graficos(df):
+    gen_graficas.gen_graficos(df)
     envios_email(df)
-        
+
 def envios_email(df):
-    #envio_gerente.envioEmailGerente(df,email_usuario_g,contraseña_usuario_g,email_gerente)
-
-    print("Espera 5 segundos...  (Anti spam Gmail)")
+    envio_gerente.envioEmailGerente(df,email_usuario_g,contraseña_usuario_g,email_gerente)
     envio_encargado.envio_email_encargado(df,email_usuario_e,contraseña_usuario_e,email_encargado)
-
-Button(raiz, text="Abrir Archivo", command=leerCSV).pack()
-
-# Mantener la aplicación gráfica abierta
-raiz.mainloop() 

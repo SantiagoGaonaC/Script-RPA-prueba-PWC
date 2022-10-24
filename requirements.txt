@@ -2,3 +2,4 @@ python-dotenv #leer valores clave-valor para utilizar variables de entorno
 python-decouple #despliegue para usar una config común y usarlas sin necesidad de estar cambiando
 pandas
 matplotlib
+customtkinter

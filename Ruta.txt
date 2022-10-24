@@ -1,3 +1,0 @@
-1 arreglar lo de los correos
-2 tipografia con PEP8
-3 graficas

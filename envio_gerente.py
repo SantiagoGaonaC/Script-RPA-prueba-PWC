@@ -1,15 +1,23 @@
+"""
+Por cada fila de la tabla validan si deben notificar al gerente (Columna “Notificar gerente”) y
+realizan el envío de un correo al gerente con la información de las siguientes columnas
+“Nombre”, “Teléfono”, “Código recepción”, “Total” y “Día”
+
+"""
+
+
 from email.message import EmailMessage
 import ssl
 import smtplib
 import datetime
+import matplotlib.pyplot as plt
+
 
 def envioEmailGerente(df,email_usuario_g,contraseña_usuario_g,email_gerente):
     for i in df.loc[df['Notifica_Gerente']=='Yes'].index:
         fecha_p = (df['Dia*'][i])
         fecha_s = df['Día'][i].strftime('%A')+", " + df['Día'][i].strftime('%d de %B de %Y')
-        
         asunto = "Notificación importante sobre Pedido "+df['Codigo_recepcion'][i]+" "+fecha_p
-    
         cuerpo = (f"""Estimado Gerente,
 Remito información sobre el pedido {df['Codigo_recepcion'][i]} que requiere una alta
 atención por parte de la gerencia solicitado el día {fecha_s}
@@ -29,17 +37,12 @@ Saludos.
     
         #SSL seguridad = mantiene conexión segura ...
         # ... al enviar data entre dos sistemas
-
         contexto = ssl.create_default_context()
         
-            # ------------  Enviar correo --------------
+        # ------------  Enviar correo --------------
         # Define servidor, puerto y usar el contexto
         # para el envio se usa smtplib
-
         #se define el servidor, en este caso GMAIL
-        
-        
-        
         with smtplib.SMTP('smtp.gmail.com', 587) as smtp:
             smtp.starttls(context=contexto)
             smtp.login(email_usuario_g, contraseña_usuario_g)
